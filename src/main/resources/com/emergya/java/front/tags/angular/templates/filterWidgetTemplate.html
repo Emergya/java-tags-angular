@@ -1,0 +1,35 @@
+<div data-ng-controller="filterWidgetCtrl">
+    <form novalidate="">
+        <div data-ng-class="{'panel panel-default': advancedOpened}" >
+
+            <div class="filter-ctr panel-body">
+                <div class="row">
+                    <div class="col-md-9">
+                        <div data-ng-class="{'input-group':!advancedOpened}">
+                            <input type="text" class="form-control" data-ng-model="filter.textFilter"
+                                   placeholder="{{'FILTER.SEARCH_PLACEHOLDER'| translate}}">
+                            <div class="input-group-btn" data-ng-show="!advancedOpened">
+                                <button type="button" class="btn btn-primary" data-ng-click="doFilter()">
+                                    <span class="glyphicon glyphicon-search"></span>&nbsp;{{'FILTER.DO_SEARCH'|translate}}</button>
+                            </div><!-- /btn-group -->
+                        </div>
+                    </div>
+                    <div clasS="col-md-3 text-right">
+                        <button type="button" class="btn btn-default" data-toggle="dropdown" data-ng-class="{'active':advancedOpened}"
+                                data-ng-click="toggleAdvanced()">{{'FILTER.TOGGLE_ADVANCED'|translate}}</button>
+                    </div>
+                </div>
+                <div data-ng-class="{'hide': !advancedOpened}" class="margin-top-25">
+                    <div class="row">
+                        %%FILTER_FIELDS%%
+                    </div>
+
+                    <div class="text-right">
+                        <button id="submit" type="submit" class="btn btn-primary" data-ng-click="doFilter()">
+                            <span class="glyphicon glyphicon-search"></span>&nbsp;{{'FILTER.DO_SEARCH'|translate}}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

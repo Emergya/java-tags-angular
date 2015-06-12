@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib version="2.1" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd">
+    <tlib-version>1.0</tlib-version>
+    <short-name>java-tags-angular</short-name>
+    <uri>/META-INF/tags/java-tags-angular</uri>
+    <tag>
+        <name>formFilter</name>
+        <tag-class>com.emergya.java.tags.angular.FormFilterTagHandler</tag-class>
+        <body-content>scriptless</body-content>
+        <attribute>
+            <name>filterClassName</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>java.lang.String</type>
+        </attribute>
+    </tag>
+    <tag>
+        <name>detailsView</name>
+        <tag-class>com.emergya.java.tags.angular.DetailsViewTagHandler</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>className</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>java.lang.String</type>
+        </attribute>
+    </tag>
+    <tag>
+        <name>entityForm</name>
+        <tag-class>com.emergya.java.tags.angular.EntityFormTagHandler</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>className</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>java.lang.String</type>
+        </attribute>
+
+        <attribute>
+            <name>model</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>java.lang.String</type>
+        </attribute>
+    </tag>
+</taglib>
