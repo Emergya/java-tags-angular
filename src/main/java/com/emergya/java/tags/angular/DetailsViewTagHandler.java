@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.SimpleTagSupport;
+import org.springframework.util.StringUtils;
 
 /**
  *
@@ -30,7 +31,7 @@ public class DetailsViewTagHandler extends SimpleTagSupport {
      * @throws javax.servlet.jsp.JspException
      */
     @Override
-    public void doTag() throws JspException {
+    public final void doTag() throws JspException {
         JspWriter out = getJspContext().getOut();
 
         Class<?> filterClass;
@@ -48,8 +49,8 @@ public class DetailsViewTagHandler extends SimpleTagSupport {
             DetailsField fieldViewAnnotation = method.getAnnotation(DetailsField.class);
             if (fieldViewAnnotation != null) {
 
-                if (Utils.isEmpty(fieldViewAnnotation.scopeName())) {
-                    String scopeName = Utils.getFieldName(method, fieldViewAnnotation.scopeName());
+                if (StringUtils.isEmpty(fieldViewAnnotation.scopeName())) {
+                    String scopeName = Utils.getFieldName(method);
                     fieldViewAnnotation = new FieldViewDTO(
                             fieldViewAnnotation.order(),
                             scopeName, fieldViewAnnotation.label(), fieldViewAnnotation.filters(), fieldViewAnnotation.type());
@@ -83,27 +84,34 @@ public class DetailsViewTagHandler extends SimpleTagSupport {
         }
     }
 
-    public void setClassName(String className) {
+    /**
+     * Sets the class a details view will be generated from.
+     *
+     * @param className The class name including its full path.
+     */
+    public final void setClassName(String className) {
         this.className = className;
     }
 
     private Object createFieldView(DetailsField fieldViewAnnotation) {
 
         String scopeBinding = fieldViewAnnotation.scopeName();
-
+        StringBuilder scopeBindingBuffer = new StringBuilder(scopeBinding);
         if (fieldViewAnnotation.filters().length > 0) {
-            scopeBinding += " | ";
+            scopeBindingBuffer.append(" | ");
             for (String filter : fieldViewAnnotation.filters()) {
-                if (!Utils.isEmpty(filter)) {
-                    scopeBinding += filter + " ";
+                if (!StringUtils.isEmpty(filter)) {
+                    scopeBindingBuffer.append(filter).append(" ");
                 }
             }
         }
 
         // We prepend the container field:
-        scopeBinding = "{{item." + scopeBinding + "}}";
+        scopeBinding = "{{item." + scopeBindingBuffer.toString() + "}}";
 
-        String content = fieldViewAnnotation.type().getTemplate().replaceAll(Pattern.quote("{scopeField}"), "{{item." + fieldViewAnnotation.scopeName() + "}}");
+        String content = fieldViewAnnotation.type().getTemplate().replaceAll(
+                Pattern.quote("{scopeField}"),
+                "{{item." + fieldViewAnnotation.scopeName() + "}}");
         content = content.replaceAll(Pattern.quote("{scopeFieldFiltered}"), scopeBinding);
 
         return String.format("<div class=\"form-group\">"
@@ -112,7 +120,7 @@ public class DetailsViewTagHandler extends SimpleTagSupport {
                 content);
     }
 
-    private class FieldViewDTO implements DetailsField {
+    private static class FieldViewDTO implements DetailsField {
 
         private final String[] filters;
         private final String label;
@@ -120,7 +128,7 @@ public class DetailsViewTagHandler extends SimpleTagSupport {
         private final int order;
         private final DetailsFieldType type;
 
-        public FieldViewDTO(int order, String scopeName, String label, String[] filters, DetailsFieldType type) {
+        FieldViewDTO(int order, String scopeName, String label, String[] filters, DetailsFieldType type) {
             this.order = order;
             this.scopeName = scopeName;
             this.label = label;

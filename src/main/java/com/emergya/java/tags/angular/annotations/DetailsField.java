@@ -14,13 +14,28 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface DetailsField {
 
+    /**
+     * @return The field's order
+     */
     int order();
 
+    /**
+     * @return the scope name.
+     */
     String scopeName() default "";
 
+    /**
+     * @return the field's label
+     */
     String label();
 
+    /**
+     * @return the filters to apply to the field.
+     */
     String[] filters() default {};
-    
+
+    /**
+     * @return The type of widget.
+     */
     DetailsFieldType type() default DetailsFieldType.TEXT;
 }

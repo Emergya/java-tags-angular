@@ -1,6 +1,6 @@
 package com.emergya.java.tags.angular.annotations;
 
-import java.util.Map;
+import org.springframework.util.StringUtils;
 
 /**
  * Enumaration type defining the types of widget supported for generating forms.
@@ -24,7 +24,7 @@ public enum FormWidgetType {
     private final boolean usingOptionsModel;
 
     /**
-     * Constructor for the enumaration values
+     * Constructor for the enumaration values.
      *
      * @param domElement The dom element type (e.g., input, textarea, etc.) that will be created
      * @param classes The classes to set into the element's class attribute
@@ -32,8 +32,12 @@ public enum FormWidgetType {
      * @param usingTemplate If the element will be replaced by an AngularJS directive template. Used to avoid applying some
      * directives that will cause AngularJS errors due both directives applying to the same element.
      * @param wrapper The wrapper HTML that will sorround the created element.
+     * @param usesOptionsModel The field uses ng-options.
      */
-    private FormWidgetType(String domElement, String classes, String[] attributes, boolean usingTemplate, String wrapper, boolean usesOptionsModel) {
+    FormWidgetType(
+            String domElement, String classes, String[] attributes,
+            boolean usingTemplate, String wrapper, boolean usesOptionsModel) {
+
         this.domElement = domElement;
         this.classes = classes;
         this.attributes = attributes;
@@ -59,14 +63,21 @@ public enum FormWidgetType {
     /**
      * @return the attributes
      */
-    public String[] getAttributes() {
-        return attributes;
+    public String getAttributes() {
+        return StringUtils.arrayToDelimitedString(attributes, " ");
     }
 
+    /**
+     *
+     * @return is using template?
+     */
     public boolean isUsingTemplate() {
         return usingTemplate;
     }
 
+    /**
+     * @return the wrapper element
+     */
     public String getWrapper() {
         return wrapper;
     }
