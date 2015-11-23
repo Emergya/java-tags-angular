@@ -1,9 +1,9 @@
 package com.emergya.java.tags.angular;
 
-import com.emergya.java.tags.angular.annotations.FormWidgetType;
+import com.emergya.java.Utils;
 import com.emergya.java.tags.angular.annotations.DetailsField;
 import com.emergya.java.tags.angular.annotations.FormField;
-import com.emergya.java.Utils;
+import com.emergya.java.tags.angular.annotations.FormWidgetType;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import javax.accessibility.AccessibleExtendedText;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.SimpleTagSupport;
@@ -35,7 +34,7 @@ public class EntityFormTagHandler extends SimpleTagSupport {
      * @throws javax.servlet.jsp.JspException
      */
     @Override
-    public void doTag() throws JspException {
+    public final void doTag() throws JspException {
         JspWriter out = getJspContext().getOut();
 
         Class<?> filterClass;
@@ -53,8 +52,8 @@ public class EntityFormTagHandler extends SimpleTagSupport {
             FormField formFieldAnnotation = method.getAnnotation(FormField.class);
             if (formFieldAnnotation != null) {
 
-                if (Utils.isEmpty(formFieldAnnotation.scopeName())) {
-                    String scopeName = Utils.getFieldName(method, formFieldAnnotation.scopeName());
+                if (StringUtils.isEmpty(formFieldAnnotation.scopeName())) {
+                    String scopeName = Utils.getFieldName(method);
                     formFieldAnnotation = new FormFieldDTO(
                             formFieldAnnotation.order(),
                             scopeName, formFieldAnnotation.label(), formFieldAnnotation.type(),
@@ -91,11 +90,21 @@ public class EntityFormTagHandler extends SimpleTagSupport {
         }
     }
 
-    public void setClassName(String className) {
+    /**
+     * Sets the class name used to generate the form.
+     *
+     * @param className The class name including its full class path.
+     */
+    public final void setClassName(final String className) {
         this.className = className;
     }
 
-    public void setModel(String model) {
+    /**
+     * Sets the form's model variable.
+     *
+     * @param model The model variable.
+     */
+    public final void setModel(final String model) {
         this.formModel = model;
     }
 
@@ -128,9 +137,8 @@ public class EntityFormTagHandler extends SimpleTagSupport {
     private List<String> createAttributes(String baseModel, FormField formFieldAnnotation) {
         ArrayList<String> attributes = new ArrayList<>();
 
-        String[] fixedAttributes = formFieldAnnotation.type().getAttributes();
-        if (fixedAttributes != null) {
-            attributes.addAll(Arrays.asList(fixedAttributes));
+        if (!StringUtils.isEmpty(formFieldAnnotation.type().getAttributes())) {
+            attributes.add(formFieldAnnotation.type().getAttributes());
         }
 
         String[] customAttributes = formFieldAnnotation.attributes();
@@ -147,9 +155,15 @@ public class EntityFormTagHandler extends SimpleTagSupport {
             attributes.add(String.format("data-ng-options=\"%s\"", optionsModelAttribute));
         }
 
-        attributes.add(String.format("data-ng-model=\"%s.%s\"", baseModel, formFieldAnnotation.scopeName()));
+        attributes.add(String.format(
+                "data-ng-model=\"%s.%s\"",
+                baseModel,
+                formFieldAnnotation.scopeName()));
 
-        attributes.add(String.format("class=\"%s %s\"", formFieldAnnotation.type().getCssClasses(), formFieldAnnotation.cssClasses()));
+        attributes.add(String.format(
+                "class=\"%s %s\"",
+                formFieldAnnotation.type().getCssClasses(),
+                formFieldAnnotation.cssClasses()));
 
         return attributes;
     }
@@ -164,7 +178,7 @@ public class EntityFormTagHandler extends SimpleTagSupport {
     /**
      * Auxiliary class to hold data from the FormField annotation and be able to handle it normally so we can sort fields etc.
      */
-    private class FormFieldDTO implements FormField {
+    private static class FormFieldDTO implements FormField {
 
         private final String label;
         private final String scopeName;
@@ -174,7 +188,7 @@ public class EntityFormTagHandler extends SimpleTagSupport {
         private final String[] attributes;
         private final String optionsExpression;
 
-        public FormFieldDTO(
+        FormFieldDTO(
                 int order, String scopeName, String label, FormWidgetType type,
                 String cssClasses, String[] attributes, String optionsScopeName) {
 

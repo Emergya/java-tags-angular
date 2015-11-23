@@ -22,8 +22,10 @@ import org.springframework.util.StringUtils;
  */
 public class FormFilterTagHandler extends SimpleTagSupport {
 
+    private static final String HTML_TEMPLATE
+            = Utils.readClassPathResourceAsString("com/emergya/java/front/tags/angular/filterWidgetTemplate.html");
+
     private String filterClassName;
-    private static String htmlTemplate;
 
     /**
      * Called by the container to invoke this tag. The implementation of this method is provided by the tag library developer, and
@@ -32,7 +34,7 @@ public class FormFilterTagHandler extends SimpleTagSupport {
      * @throws javax.servlet.jsp.JspException When there is an output error.
      */
     @Override
-    public void doTag() throws JspException {
+    public final void doTag() throws JspException {
 
         Class<?> filterClass;
         try {
@@ -49,18 +51,36 @@ public class FormFilterTagHandler extends SimpleTagSupport {
             FilterField filterFieldAnnotation = method.getAnnotation(FilterField.class);
             if (filterFieldAnnotation != null) {
 
-                if (StringUtils.isEmpty(filterFieldAnnotation.scopeName()) || StringUtils.isEmpty(filterFieldAnnotation.fieldName())) {
-                    String fieldName = Utils.getFieldName(method, filterFieldAnnotation.fieldName());
-                    String scopeName = Utils.getFieldName(method, filterFieldAnnotation.scopeName());
-                    filterFieldAnnotation = new FilterFieldDto(
-                            filterFieldAnnotation.order(), fieldName,
-                            scopeName, filterFieldAnnotation.label(),
-                            filterFieldAnnotation.op(), filterFieldAnnotation.cssClasses(),
-                            filterFieldAnnotation.attributes(), filterFieldAnnotation.type());
+                if (StringUtils.isEmpty(filterFieldAnnotation.scopeName())
+                        || StringUtils.isEmpty(filterFieldAnnotation.fieldName())) {
+                    String fieldName, scopeName;
+
+                    fieldName = filterFieldAnnotation.fieldName();
+                    if (StringUtils.isEmpty(fieldName)) {
+                        fieldName = Utils.getFieldName(method);
+                    }
+
+                    scopeName = filterFieldAnnotation.scopeName();
+                    if (StringUtils.isEmpty(scopeName)) {
+                        scopeName = Utils.getFieldName(method);
+                    }
+
+                    FilterFieldDto filterFieldDto = new FilterFieldDto();
+                    filterFieldDto.setOrder(filterFieldAnnotation.order());
+
+                    filterFieldDto.setLabel(filterFieldAnnotation.scopeName());
+                    filterFieldDto.setOp(filterFieldAnnotation.op());
+                    filterFieldDto.setCssClasses(filterFieldAnnotation.cssClasses());
+                    filterFieldDto.setAttributes(filterFieldAnnotation.attributes());
+                    filterFieldDto.setType(filterFieldAnnotation.type());
+
+                    filterFieldDto.setFieldName(fieldName);
+                    filterFieldDto.setScopeName(scopeName);
+
+                    filterFieldAnnotation = filterFieldDto;
                 }
 
                 sortedMethods.add(filterFieldAnnotation);
-
             }
         }
 
@@ -77,15 +97,7 @@ public class FormFilterTagHandler extends SimpleTagSupport {
             fieldsHtmlBuilder.append(addFilterField(filterFieldAnnotation));
         }
 
-        if (htmlTemplate == null) {
-            try {
-                htmlTemplate = Utils.readClassPathResourceAsString("com/emergya/java/front/tags/angular/filterWidgetTemplate.html");
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        String tagHtml = htmlTemplate.replace("%%FILTER_FIELDS%%", fieldsHtmlBuilder.toString());
+        String tagHtml = HTML_TEMPLATE.replace("%%FILTER_FIELDS%%", fieldsHtmlBuilder.toString());
 
         JspWriter out = getJspContext().getOut();
         try {
@@ -95,14 +107,20 @@ public class FormFilterTagHandler extends SimpleTagSupport {
         }
     }
 
-    public void setFilterClassName(String filterClassName) {
+    /**
+     * Sets the class the filter view will be generated from.
+     *
+     * @param filterClassName The class name, including its full path.
+     */
+    public final void setFilterClassName(String filterClassName) {
         this.filterClassName = filterClassName;
     }
 
     private String addFilterField(FilterField filterFieldAnnotation) {
 
         return String.format(
-                "<div class=\"col-md-4 form-group\" ><label>{{'%s'|translate}}</label><%s class=\"%s %s\" %s %s data-ng-model=\"filter.%s\"></%s></div>",
+                "<div class=\"col-md-4 form-group\" ><label>{{'%s'|translate}}</label>"
+                + "<%s class=\"%s %s\" %s %s data-ng-model=\"filter.%s\"></%s></div>",
                 filterFieldAnnotation.label(),
                 filterFieldAnnotation.type().getDomElement(),
                 filterFieldAnnotation.type().getCssClasses(),
@@ -113,30 +131,16 @@ public class FormFilterTagHandler extends SimpleTagSupport {
                 filterFieldAnnotation.type().getDomElement());
     }
 
-    private class FilterFieldDto implements FilterField {
+    private static class FilterFieldDto implements FilterField {
 
-        private final int order;
-        private final String fieldName;
-        private final String scopeName;
-        private final String label;
-        private final FilterFieldOp op;
-        private final String cssClasses;
-        private final String attributes;
-        private final FormWidgetType formWidgetType;
-
-        public FilterFieldDto(
-                int order, String fieldName, String scopeName, String label, FilterFieldOp op, String cssClasses,
-                String attributes, FormWidgetType formWidgetType) {
-
-            this.order = order;
-            this.fieldName = fieldName;
-            this.scopeName = scopeName;
-            this.label = label;
-            this.op = op;
-            this.cssClasses = cssClasses;
-            this.attributes = attributes;
-            this.formWidgetType = formWidgetType;
-        }
+        private int order;
+        private String fieldName;
+        private String scopeName;
+        private String label;
+        private FilterFieldOp op;
+        private String cssClasses;
+        private String attributes;
+        private FormWidgetType type;
 
         @Override
         public int order() {
@@ -175,12 +179,68 @@ public class FormFilterTagHandler extends SimpleTagSupport {
 
         @Override
         public FormWidgetType type() {
-            return formWidgetType;
+            return type;
         }
 
         @Override
         public Class<? extends Annotation> annotationType() {
             return FilterField.class;
+        }
+
+        /**
+         * @param order the order to set
+         */
+        public void setOrder(int order) {
+            this.order = order;
+        }
+
+        /**
+         * @param fieldName the fieldName to set
+         */
+        public void setFieldName(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        /**
+         * @param scopeName the scopeName to set
+         */
+        public void setScopeName(String scopeName) {
+            this.scopeName = scopeName;
+        }
+
+        /**
+         * @param label the label to set
+         */
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        /**
+         * @param op the op to set
+         */
+        public void setOp(FilterFieldOp op) {
+            this.op = op;
+        }
+
+        /**
+         * @param cssClasses the cssClasses to set
+         */
+        public void setCssClasses(String cssClasses) {
+            this.cssClasses = cssClasses;
+        }
+
+        /**
+         * @param attributes the attributes to set
+         */
+        public void setAttributes(String attributes) {
+            this.attributes = attributes;
+        }
+
+        /**
+         * @param formWidgetType the type to set
+         */
+        public void setType(FormWidgetType formWidgetType) {
+            this.type = formWidgetType;
         }
 
     }

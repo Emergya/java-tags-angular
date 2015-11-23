@@ -14,17 +14,38 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface FormField {
 
+    /**
+     * @return The field's order
+     */
     int order();
 
+    /**
+     * @return The field's model parent if any.
+     */
     String scopeName() default "";
 
+    /**
+     * @return the field's label
+     */
     String label();
 
+    /**
+     * @return The field's type.
+     */
     FormWidgetType type() default FormWidgetType.INPUT;
 
+    /**
+     * @return CSS classes to apply to the widget's DOM element..
+     */
     String cssClasses() default "";
 
+    /**
+     * @return Attributes to apply to the widget's DOM element.
+     */
     String[] attributes() default "";
 
+    /**
+     * @return AngularJS expression for use in the ng-options attribute.
+     */
     String optionsExpression() default "";
 }
